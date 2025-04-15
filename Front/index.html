@@ -47,6 +47,7 @@
         <script>
             $(document).ready(function () {
                 $('#message-input').keydown(function (event) {
+                    // Safari, MacOS에서 엔터키 두번 실행되는 이슈
                     if (event.isComposing || event.keyCode === 229) {
                         return;
                     }

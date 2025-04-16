@@ -45,6 +45,36 @@
         </div>
 
         <script>
+            const WEB_SCOKET_URL =
+                'wss://gptchar1eypubsub.webpubsub.azure.com/client/hubs/test_hub?access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ3c3M6Ly9ncHRjaGFyMWV5cHVic3ViLndlYnB1YnN1Yi5henVyZS5jb20vY2xpZW50L2h1YnMvdGVzdF9odWIiLCJpYXQiOjE3NDQ4NDYwNTgsImV4cCI6MTc0NDg0OTY1OCwicm9sZSI6WyJ3ZWJwdWJzdWIuc2VuZFRvR3JvdXAiLCJ3ZWJwdWJzdWIuam9pbkxlYXZlR3JvdXAiXSwic3ViIjoiZ3Vlc3QifQ.NXq34jlkl71UrKo53o46BHBgsQE5-nR5ayuKWadsuhc';
+            const pubsubClient = new WebSocket(
+                WEB_SCOKET_URL,
+                'json.webpubsub.azure.v1',
+            );
+
+            pubsubClient.onopen = function (event) {
+                // 연결 확인
+                console.log('연결 성공!');
+
+                // 특정 그룹으로 메시지 보내기
+                pubsubClient.send(
+                    JSON.stringify({ type: 'joinGroup', group: 'group1' }),
+                );
+            };
+
+            pubsubClient.onmessage = function (event) {
+                let message = JSON.parse(event.data);
+                console.log(message);
+
+                if (message.data && message.data !== '') {
+                    $('#chat-box').append(
+                        '<p class="other-message">' + message.data + '</p>',
+                    );
+                }
+            };
+
+            pubsubClient.onclose = function (event) {};
+
             $(document).ready(function () {
                 $('#message-input').keydown(function (event) {
                     // Safari, MacOS에서 엔터키 두번 실행되는 이슈

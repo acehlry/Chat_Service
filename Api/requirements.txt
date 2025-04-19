@@ -1,0 +1,12 @@
+# DO NOT include azure-functions-worker in this file
+# The Python Worker is managed by Azure Functions platform
+# Manually managing azure-functions-worker may cause unexpected issues
+
+
+# 내가 설치한 라이브러리들
+# azure function은 function_app.py를 실행
+azure-functions
+fastapi
+uvicorn[standard]
+azure-messaging-webpubsubservice
+aiohttp

@@ -45,37 +45,79 @@
         </div>
 
         <script>
-            const WEB_SCOKET_URL =
-                'wss://gptchar1eypubsub.webpubsub.azure.com/client/hubs/test_hub?access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ3c3M6Ly9ncHRjaGFyMWV5cHVic3ViLndlYnB1YnN1Yi5henVyZS5jb20vY2xpZW50L2h1YnMvdGVzdF9odWIiLCJpYXQiOjE3NDQ4NDYwNTgsImV4cCI6MTc0NDg0OTY1OCwicm9sZSI6WyJ3ZWJwdWJzdWIuc2VuZFRvR3JvdXAiLCJ3ZWJwdWJzdWIuam9pbkxlYXZlR3JvdXAiXSwic3ViIjoiZ3Vlc3QifQ.NXq34jlkl71UrKo53o46BHBgsQE5-nR5ayuKWadsuhc';
-            const pubsubClient = new WebSocket(
-                WEB_SCOKET_URL,
-                'json.webpubsub.azure.v1',
-            );
+            // 1. channel_id를 받아오고
+            // 2. channel_id로 token을 받아온 다음
+            // 3. token으로 웹소켓에 연결
 
-            pubsubClient.onopen = function (event) {
-                // 연결 확인
-                console.log('연결 성공!');
+            const API_URL =
+                'https://char1ey-gpt-api-function.azurewebsites.net';
+            // const API_URL = 'http://localhost:7071';
+            let CHANNEL_ID = null;
 
-                // 특정 그룹으로 메시지 보내기
-                pubsubClient.send(
-                    JSON.stringify({ type: 'joinGroup', group: 'group1' }),
+            function getChannelId() {
+                return $.ajax({
+                    url: API_URL + '/channel-id',
+                    type: 'GET',
+                    dataType: 'json',
+                });
+            }
+
+            function getPubSubToken(channelId) {
+                return $.ajax({
+                    url: API_URL + '/pubsub/token?channel_id=' + channelId,
+                    type: 'GET',
+                    dataType: 'json',
+                });
+            }
+
+            function connectWebSocket(channel_id, token) {
+                const WEB_SCOKET_URL =
+                    'wss://gptchar1eypubsub.webpubsub.azure.com/client/hubs/dev_hub?access_token=' +
+                    token;
+                const pubsubClient = new WebSocket(
+                    WEB_SCOKET_URL,
+                    'json.webpubsub.azure.v1',
                 );
-            };
 
-            pubsubClient.onmessage = function (event) {
-                let message = JSON.parse(event.data);
-                console.log(message);
+                pubsubClient.onopen = function (event) {
+                    console.log('연결 성공');
 
-                if (message.data && message.data !== '') {
-                    $('#chat-box').append(
-                        '<p class="other-message">' + message.data + '</p>',
+                    pubsubClient.send(
+                        JSON.stringify({
+                            type: 'joinGroup',
+                            group: channel_id,
+                        }),
                     );
-                }
-            };
+                };
 
-            pubsubClient.onclose = function (event) {};
+                pubsubClient.onmessage = function (event) {
+                    let message = JSON.parse(event.data);
+                    console.log(message);
+
+                    if (message.data && message.data !== '') {
+                        $('#chat-box').append(
+                            '<p class="other-message">' + message.data + '</p>',
+                        );
+                    }
+                };
+
+                pubsubClient.onclose = function (event) {};
+            }
 
             $(document).ready(function () {
+                getChannelId()
+                    .then((response) => {
+                        CHANNEL_ID = response.channel_id;
+
+                        return getPubSubToken(CHANNEL_ID);
+                    })
+                    .then((response) => {
+                        const token = response.token;
+                        console.log(token);
+
+                        connectWebSocket(CHANNEL_ID, token);
+                    });
+
                 $('#message-input').keydown(function (event) {
                     // Safari, MacOS에서 엔터키 두번 실행되는 이슈
                     if (event.isComposing || event.keyCode === 229) {
@@ -83,14 +125,32 @@
                     }
                     if (event.key === 'Enter') {
                         var message = $(this).val();
+
                         if (message.trim() !== '') {
                             $('#chat-box').append(
                                 '<p class="my-message">' + message + '</p>',
                             );
-                            $(this).val('');
+                            $(event.target).val('');
                             $('#chat-box').scrollTop(
                                 $('#chat-box')[0].scrollHeight,
                             );
+
+                            $.ajax({
+                                url: API_URL + '/question',
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({
+                                    channel_id: CHANNEL_ID,
+                                    content: message,
+                                }),
+                                success: function (response) {},
+                                error: function (xhr, status, error) {
+                                    console.log('메세지 전송 실패 ' + error);
+                                    $('#chat-box').append(
+                                        '<p class="my-message"> 에러가 발생했습니다. </p>',
+                                    );
+                                },
+                            });
                         }
                     }
                 });

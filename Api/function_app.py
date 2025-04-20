@@ -5,6 +5,7 @@ from dto.question import QuestionRequest
 from azure.messaging.webpubsubservice.aio import WebPubSubServiceClient
 from azure.core.credentials import AzureKeyCredential
 from fastapi.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
 
 import azure.functions as func
 import os
@@ -19,10 +20,10 @@ fast_app.add_middleware(
 )
 app = func.AsgiFunctionApp(app = fast_app, http_auth_level = func.AuthLevel.ANONYMOUS)
 
+db_client = AsyncIOMotorClient(os.environ["DB_CONNECTION_URL"])
 pubsub_client = WebPubSubServiceClient(endpoint=os.environ["PUBSUB_CONNECTION_URL"], hub=os.environ["PUBSUB_HUB"], credential=AzureKeyCredential(os.environ["PUBSUB_KEY"]))
 
-# 질문 API
-# PubSub 토큰 발급 API
+db = db_client['mygpt']
 
 @fast_app.get('/channel-id')
 async def get_channel_id():
@@ -30,7 +31,8 @@ async def get_channel_id():
 
 @fast_app.post('/question')
 async def send_question(request: QuestionRequest):
-        return request
+        result = await db.messages.insert_one({"channel_id": request.channel_id, "content": request.content})
+        return str(result.inserted_id)
 
 @fast_app.get("/pubsub/token")
 async def read_root(channel_id: str):

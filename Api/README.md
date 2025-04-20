@@ -10,19 +10,20 @@
 
 ## FastAPI 성능
 
-- Starlette
-    - 경량 ASGI 프레임워크
-        - Asynchronous
-        - Server
-        - Gateway
-        - Interface
+-   Starlette
 
-- Pydantic
-    - 데이터 검증
-        - 데이터 검증
-        - 자동 형변환
-    - 직렬화
-        - json으로 직렬화하기 편함 --> API 문서 자동으로 생성        
+    -   경량 ASGI 프레임워크
+        -   Asynchronous
+        -   Server
+        -   Gateway
+        -   Interface
+
+-   Pydantic
+    -   데이터 검증
+        -   데이터 검증
+        -   자동 형변환
+    -   직렬화
+        -   json으로 직렬화하기 편함 --> API 문서 자동으로 생성
 
 ## 코드
 
@@ -43,14 +44,14 @@ def read_item(item_id: int, q: Union[str, None] = None):
     return {"item_id": item_id, "q": q}
 ```
 
-- `Union`: 리스트 안에 있는 어떤 타입도 받을 수 있음
+-   `Union`: 리스트 안에 있는 어떤 타입도 받을 수 있음
 
 ## FastAPI 특징
 
-- `비동기` 지원
-- 타입 힌트를 통한 자동 `데이터 검증`
-- 쉬운 확장성
-- API 문서 자동 생성
+-   `비동기` 지원
+-   타입 힌트를 통한 자동 `데이터 검증`
+-   쉬운 확장성
+-   API 문서 자동 생성
 
 ## 실행
 
@@ -63,11 +64,11 @@ uvicorn main:app --reload
 
 ## 서버리스
 
-- 개발자가 서버 세팅에 신경 X
-    - 비지니스 로직 구현만 집중
-- 함수 실행, 리소스 사용 등 사용량 만큼 비용을 지불
-- 이벤트 기반 Function 실행
-    - HTTP 요청, MQ 탐지, 파일 업로드, DB 업데이트 등등
+-   개발자가 서버 세팅에 신경 X
+    -   비지니스 로직 구현만 집중
+-   함수 실행, 리소스 사용 등 사용량 만큼 비용을 지불
+-   이벤트 기반 Function 실행
+    -   HTTP 요청, MQ 탐지, 파일 업로드, DB 업데이트 등등
 
 **장점**
 
@@ -96,3 +97,7 @@ uvicorn main:app --reload
 ```sh
 npm install -g azure-function-core-tools
 ```
+
+## motor
+
+-   비동기 가능

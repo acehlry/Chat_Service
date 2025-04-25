@@ -50,7 +50,7 @@
             // 3. token으로 웹소켓에 연결
 
             // const API_URL = 'https://char1ey-gpt-api-function.azurewebsites.net';
-            const API_URL = 'http://localhost:7071';
+            const API_URL = 'http://localhost:7072';
             let CHANNEL_ID = null;
 
             function getChannelId() {
@@ -95,7 +95,9 @@
 
                     if (message.data && message.data !== '') {
                         $('#chat-box').append(
-                            '<p class="other-message">' + message.data + '</p>',
+                            '<p class="other-message">' +
+                                message.data.content +
+                                '</p>',
                         );
                     }
                 };

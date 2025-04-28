@@ -1,0 +1,13 @@
+{
+    "IsEncrypted": false,
+    "Values": {
+        "AzureWebJobsStorage": "",
+        "AzureWebJobsFeatureFlags": "",
+        "FUNCTIONS_WORKER_RUNTIME": "",
+        "PUBSUB_CONNECTION_URL": "",
+        "PUBSUB_KEY": "",
+        "PUBSUB_HUB": "",
+        "DB_CONNECTION_URL": "",
+        "SERVICEBUS_CONNECTION_URL": ""
+    }
+}

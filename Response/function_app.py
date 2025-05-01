@@ -1,17 +1,13 @@
+from utils.database import db
+from utils.pubsub import pubsub_client
+
 import azure.functions as func
 import logging
 import json
 import os
 
-from motor.motor_asyncio import AsyncIOMotorClient
-from azure.messaging.webpubsubservice.aio import WebPubSubServiceClient
-from azure.core.credentials import AzureKeyCredential
-
 app = func.FunctionApp()
-pubsub_client = WebPubSubServiceClient(endpoint=os.environ["PUBSUB_CONNECTION_URL"], hub=os.environ["PUBSUB_HUB"], credential=AzureKeyCredential(os.environ["PUBSUB_KEY"]))
-db_client = AsyncIOMotorClient(os.environ["DB_CONNECTION_URL"])
 
-db = db_client['mygpt']
 
 @app.service_bus_queue_trigger(arg_name="msg", queue_name="process-response-queue",
                                connection="SERVICEBUS_CONNECTION_URL") 

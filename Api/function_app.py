@@ -1,17 +1,11 @@
-# from azure.messaging.webpubsubservice import WebPubSubServiceClient
-
 from fastapi import FastAPI
 from dto.question import QuestionRequest
-from azure.messaging.webpubsubservice.aio import WebPubSubServiceClient
-from azure.core.credentials import AzureKeyCredential
 from fastapi.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
-from azure.servicebus.aio import ServiceBusClient
-from azure.servicebus import ServiceBusMessage # 메시지를 보낸때 해당 클래스로 감싸 보내야함
+from utils.pubsub import pubsub_client
+from utils.database import db
+from utils.servicebus import servicebus_clinet
 
-import json
 import azure.functions as func
-import os
 import uuid
 
 fast_app = FastAPI()
@@ -22,12 +16,6 @@ fast_app.add_middleware(
         allow_headers=["*"]
 )
 app = func.AsgiFunctionApp(app = fast_app, http_auth_level = func.AuthLevel.ANONYMOUS)
-
-db_client = AsyncIOMotorClient(os.environ["DB_CONNECTION_URL"])
-pubsub_client = WebPubSubServiceClient(endpoint=os.environ["PUBSUB_CONNECTION_URL"], hub=os.environ["PUBSUB_HUB"], credential=AzureKeyCredential(os.environ["PUBSUB_KEY"]))
-servicebus_client = ServiceBusClient.from_connection_string(conn_str=os.environ["SERVICEBUS_CONNECTION_URL"], logging_enable=True)
-
-db = db_client['mygpt']
 
 @fast_app.get('/channel-id')
 async def get_channel_id():
@@ -44,12 +32,7 @@ async def send_question(request: QuestionRequest):
         result = await db.messages.insert_one(question_data)
         question_data['_id'] = str(question_data['_id'])
         
-        async with servicebus_client:
-                sender = servicebus_client.get_queue_sender(queue_name="process-request-queue")
-    
-                async with sender:
-                        message = ServiceBusMessage(json.dumps(question_data))
-                        await sender.send_messages(message)
+        await servicebus_clinet.send_message(question_data, 'process-request-queue')
         
         return str(result.inserted_id)
 
